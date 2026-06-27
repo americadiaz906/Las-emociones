@@ -1,0 +1,466 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🥳 Mis Emociones - Juego Interactivo</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', 'Comic Sans MS', 'Chalkboard SE', Arial, sans-serif;
+      background: linear-gradient(135deg, #FFECD2 0%, #FCB69F 50%, #FF9A9E 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 16px;
+    }
+    .screen { display: none; flex-direction: column; align-items: center; justify-content: center; animation: fadeIn 0.6s ease; }
+    .screen.active { display: flex; }
+    @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+    @keyframes bounce { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+    @keyframes wiggle { 0%,100% { transform: rotate(0deg); } 25% { transform: rotate(-5deg); } 75% { transform: rotate(5deg); } }
+    @keyframes popIn { 0% { transform: scale(0); opacity: 0; } 70% { transform: scale(1.15); } 100% { transform: scale(1); opacity: 1; } }
+    @keyframes gradientShift { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+    @keyframes float { 0%,100% { transform: translateY(0px); } 50% { transform: translateY(-8px); } }
+    @keyframes medalGlow { 0%,100% { filter: drop-shadow(0 0 5px gold); } 50% { filter: drop-shadow(0 0 20px gold); } }
+    @keyframes bigEmojiPop { 0% { transform: scale(0) rotate(-20deg); opacity: 0; } 60% { transform: scale(1.3) rotate(5deg); } 100% { transform: scale(1) rotate(0deg); opacity: 1; } }
+    .game-container {
+      max-width: 780px; width: 100%; background-color: #FFFFFF;
+      border-radius: 50px; padding: 28px 24px 36px;
+      box-shadow: 0 15px 40px rgba(255, 107, 107, 0.25);
+      text-align: center; border: 4px solid #FFB5A7;
+      transition: all 0.3s ease; position: relative; overflow: hidden;
+    }
+    .game-container::before { content: '\U0001F338'; position: absolute; top: -10px; left: -10px; font-size: 3rem; opacity: 0.15; transform: rotate(-20deg); }
+    .game-container::after { content: '\U0001F31F'; position: absolute; bottom: -10px; right: -10px; font-size: 3rem; opacity: 0.15; transform: rotate(20deg); }
+    .mascot-area {
+      display: flex; align-items: center; justify-content: center;
+      gap: 10px; margin-bottom: 10px; padding: 6px 16px;
+      background: linear-gradient(135deg, #FFF8E7, #FFF0D0);
+      border-radius: 40px; border: 2px solid #FFD699;
+      min-height: 60px;
+    }
+    .mascot-emoji { font-size: 2.8rem; animation: float 3s ease-in-out infinite; cursor: default; }
+    .mascot-speech {
+      font-size: 1rem; color: #5D4037; font-weight: 600;
+      background: #FFFDF5; padding: 6px 16px;
+      border-radius: 20px; border: 2px solid #FFE0B2;
+      position: relative; flex: 1; text-align: center;
+    }
+    .mascot-speech::before {
+      content: ''; position: absolute; left: -10px; top: 50%;
+      transform: translateY(-50%);
+      border: 8px solid transparent; border-right-color: #FFE0B2;
+    }
+    .score-display {
+      display: flex; align-items: center; gap: 8px;
+      background: linear-gradient(135deg, #FFF3CD, #FFE69C);
+      padding: 4px 14px 4px 10px; border-radius: 30px;
+      border: 2px solid #FFC107; font-weight: 700;
+    }
+    .score-star { font-size: 1.3rem; }
+    .score-number { font-size: 1.1rem; color: #6D4C00; }
+    .big-emotion-overlay {
+      display: none; position: fixed; top: 0; left: 0;
+      width: 100vw; height: 100vh; z-index: 999;
+      background: rgba(0,0,0,0.35);
+      justify-content: center; align-items: center;
+      backdrop-filter: blur(3px);
+    }
+    .big-emotion-overlay.active { display: flex; }
+    .big-emotion-content {
+      background: rgba(255,255,255,0.95); border-radius: 60px;
+      padding: 30px 40px 36px; text-align: center;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      border: 4px solid #FFB5A7; max-width: 400px;
+      animation: popIn 0.5s ease;
+    }
+    .big-emotion-emoji { font-size: 8rem; line-height: 1.2; animation: bigEmojiPop 0.6s ease forwards; }
+    .big-emotion-name { font-size: 2.2rem; font-weight: 800; margin-top: 8px; color: #4A3728; }
+    .big-emotion-btn {
+      margin-top: 16px; padding: 12px 36px; font-size: 1.2rem;
+      border: none; border-radius: 40px; cursor: pointer;
+      background: linear-gradient(135deg, #6BCB77, #4CAF50);
+      color: #FFF; font-weight: 700; box-shadow: 0 4px 14px rgba(76,175,80,0.4);
+      transition: all 0.2s;
+    }
+    .big-emotion-btn:hover { transform: scale(1.05); }
+    #welcomeScreen .welcome-icon { font-size: 4.5rem; animation: bounce 2s infinite ease-in-out; margin-bottom: 6px; }
+    #welcomeScreen h1 {
+      font-size: 2.4rem;
+      background: linear-gradient(135deg, #FF6B6B, #FFA94D, #FFD93D, #6BCB77, #4D96FF, #9B59B6);
+      background-size: 300% 300%;
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text; animation: gradientShift 4s ease infinite;
+      margin-bottom: 6px; font-weight: 800;
+    }
+    .welcome-subtitle { font-size: 1.2rem; color: #666; margin-bottom: 10px; font-weight: 500; }
+    .welcome-emotions-row { font-size: 2.2rem; letter-spacing: 10px; margin: 8px 0; animation: wiggle 3s infinite ease-in-out; }
+    .welcome-desc { font-size: 1.05rem; color: #888; max-width: 400px; line-height: 1.5; margin-bottom: 20px; }
+    .welcome-mascot-row { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 18px; }
+    .welcome-mascot { font-size: 3.5rem; animation: float 2.5s ease-in-out infinite; }
+    .welcome-bubble {
+      background: #FFFDF5; border: 2px solid #FFE0B2; border-radius: 24px;
+      padding: 8px 20px; font-size: 1.1rem; color: #5D4037; font-weight: 600; position: relative;
+    }
+    .welcome-bubble::before { content: ''; position: absolute; left: -10px; top: 50%; transform: translateY(-50%); border: 8px solid transparent; border-right-color: #FFE0B2; }
+    .game-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 6px; }
+    .game-title-small { font-size: 1.2rem; font-weight: 700; background: linear-gradient(135deg, #FF6B6B, #FFA94D); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .progress-badge { background: linear-gradient(135deg, #FFD93D, #FF6B6B); color: #fff; padding: 5px 16px; border-radius: 40px; font-size: 0.9rem; font-weight: 700; box-shadow: 0 3px 10px rgba(255,107,107,0.3); }
+    .situation-area {
+      background: linear-gradient(135deg, #FFF5F0, #FFF0F5, #F0F8FF);
+      border-radius: 36px; padding: 22px 18px; margin-bottom: 20px;
+      border: 3px dashed #FFB5A7; min-height: 130px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      transition: all 0.3s ease;
+    }
+    .situation-icon { font-size: 3.5rem; margin-bottom: 6px; line-height: 1.2; animation: popIn 0.5s ease; }
+    .situation-text { font-size: 1.5rem; font-weight: 700; color: #4A3728; line-height: 1.4; max-width: 500px; }
+    .question-prompt { font-size: 1.2rem; color: #FF8A80; margin-bottom: 16px; font-weight: 600; }
+    .emotions-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-bottom: 16px; }
+    .emotion-btn {
+      flex: 1 1 110px; max-width: 140px; min-width: 90px;
+      background-color: #FFFFFF; border: 3px solid #E0E0E0;
+      border-radius: 28px; padding: 12px 6px 14px;
+      cursor: pointer; transition: all 0.25s ease;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+      display: flex; flex-direction: column; align-items: center; gap: 3px;
+    }
+    .emotion-btn:hover { transform: translateY(-5px) scale(1.03); box-shadow: 0 10px 24px rgba(0,0,0,0.12); }
+    .emotion-btn:active { transform: translateY(-2px) scale(1.01); }
+    .emotion-btn:disabled { opacity: 0.7; cursor: default; transform: none !important; }
+    .emotion-emoji { font-size: 2.5rem; line-height: 1.2; transition: transform 0.3s ease; }
+    .emotion-btn:hover .emotion-emoji { transform: scale(1.2); }
+    .emotion-name { font-size: 1rem; font-weight: 700; color: #4A3728; }
+    .emotion-btn[data-emotion="alegria"] { border-color: #FFD93D; background: linear-gradient(180deg, #FFFBE6, #FFFDF0); }
+    .emotion-btn[data-emotion="alegria"]:hover, .emotion-btn[data-emotion="alegria"].highlight { border-color: #FFC107; background: linear-gradient(180deg, #FFF3CD, #FFE69C); box-shadow: 0 8px 20px rgba(255,193,7,0.35); }
+    .emotion-btn[data-emotion="alegria"] .emotion-name { color: #D4A017; }
+    .emotion-btn[data-emotion="tristeza"] { border-color: #74B9FF; background: linear-gradient(180deg, #F0F8FF, #E3F0FF); }
+    .emotion-btn[data-emotion="tristeza"]:hover, .emotion-btn[data-emotion="tristeza"].highlight { border-color: #4D96FF; background: linear-gradient(180deg, #D6EAFF, #B8D8FF); box-shadow: 0 8px 20px rgba(77,150,255,0.35); }
+    .emotion-btn[data-emotion="tristeza"] .emotion-name { color: #2D7BD6; }
+    .emotion-btn[data-emotion="sorpresa"] { border-color: #DDA0FF; background: linear-gradient(180deg, #F9F0FF, #F3E0FF); }
+    .emotion-btn[data-emotion="sorpresa"]:hover, .emotion-btn[data-emotion="sorpresa"].highlight { border-color: #BB6BD9; background: linear-gradient(180deg, #EAD0FF, #DAB0FF); box-shadow: 0 8px 20px rgba(187,107,217,0.35); }
+    .emotion-btn[data-emotion="sorpresa"] .emotion-name { color: #9B30B6; }
+    .emotion-btn[data-emotion="miedo"] { border-color: #B0B0B0; background: linear-gradient(180deg, #F5F5F5, #EAEAEA); }
+    .emotion-btn[data-emotion="miedo"]:hover, .emotion-btn[data-emotion="miedo"].highlight { border-color: #888; background: linear-gradient(180deg, #E0E0E0, #CCCCCC); box-shadow: 0 8px 20px rgba(136,136,136,0.35); }
+    .emotion-btn[data-emotion="miedo"] .emotion-name { color: #666; }
+    .emotion-btn[data-emotion="enojo"] { border-color: #FF8A80; background: linear-gradient(180deg, #FFF0F0, #FFE4E0); }
+    .emotion-btn[data-emotion="enojo"]:hover, .emotion-btn[data-emotion="enojo"].highlight { border-color: #FF5252; background: linear-gradient(180deg, #FFD6D6, #FFB8B8); box-shadow: 0 8px 20px rgba(255,82,82,0.35); }
+    .emotion-btn[data-emotion="enojo"] .emotion-name { color: #D32F2F; }
+    .feedback-area {
+      min-height: 100px; margin: 6px 0 14px; padding: 16px;
+      border-radius: 28px; background: linear-gradient(135deg, #FFF5F0, #FFF0F5);
+      border: 2px solid #FFD6CC; display: none;
+      flex-direction: column; align-items: center; justify-content: center;
+      transition: all 0.4s ease;
+    }
+    .feedback-area.visible { display: flex; animation: popIn 0.4s ease; }
+    .feedback-emoji { font-size: 2.4rem; margin-bottom: 3px; }
+    .feedback-text { font-size: 1.15rem; font-weight: 600; color: #4A3728; }
+    .feedback-subtext { font-size: 0.95rem; color: #888; margin-top: 3px; font-style: italic; }
+    .act-body-message {
+      font-size: 1.25rem; font-weight: 800; color: #FF6B6B;
+      margin-top: 6px; padding: 6px 18px;
+      background: linear-gradient(135deg, #FFF3E6, #FFE4E0);
+      border-radius: 40px; display: inline-block; border: 2px solid #FFB5A7;
+      animation: wiggle 2s infinite ease-in-out;
+    }
+    .nav-buttons { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 6px; }
+    .btn {
+      border: none; border-radius: 60px; padding: 12px 28px;
+      font-size: 1.1rem; font-weight: 700; cursor: pointer;
+      transition: all 0.25s ease; display: inline-flex; align-items: center; gap: 8px;
+    }
+    .btn:hover { transform: translateY(-3px); }
+    .btn:active { transform: translateY(0); }
+    .btn-primary { background: linear-gradient(135deg, #FF6B6B, #FFA94D); color: #FFFFFF; box-shadow: 0 6px 20px rgba(255,107,107,0.4); }
+    .btn-primary:hover { box-shadow: 0 8px 28px rgba(255,107,107,0.5); }
+    .btn-secondary { background: linear-gradient(135deg, #74B9FF, #4D96FF); color: #FFFFFF; box-shadow: 0 6px 20px rgba(77,150,255,0.4); }
+    .btn-secondary:hover { box-shadow: 0 8px 28px rgba(77,150,255,0.5); }
+    .btn-success { background: linear-gradient(135deg, #6BCB77, #4CAF50); color: #FFFFFF; box-shadow: 0 6px 20px rgba(76,175,80,0.4); }
+    .btn-success:hover { box-shadow: 0 8px 28px rgba(76,175,80,0.5); }
+    .btn-warning { background: linear-gradient(135deg, #FFD93D, #FFC107); color: #4A3728; box-shadow: 0 6px 20px rgba(255,193,7,0.4); }
+    .btn-warning:hover { box-shadow: 0 8px 28px rgba(255,193,7,0.5); }
+    .btn-back { background: linear-gradient(135deg, #FF8A80, #FF5252); color: #FFFFFF; box-shadow: 0 4px 14px rgba(255,82,82,0.35); padding: 10px 20px; font-size: 1rem; }
+    .btn-back:hover { box-shadow: 0 6px 20px rgba(255,82,82,0.45); }
+    .btn-small { padding: 10px 20px; font-size: 1rem; }
+    #completeScreen .complete-icon { font-size: 4.5rem; animation: bounce 2s infinite ease-in-out; margin-bottom: 6px; }
+    #completeScreen h2 { font-size: 1.8rem; background: linear-gradient(135deg, #FF6B6B, #FFD93D, #6BCB77); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 4px; }
+    .medal-display { margin: 10px 0; }
+    .medal-emoji { font-size: 5rem; display: block; animation: medalGlow 2s infinite ease-in-out; }
+    .medal-name { font-size: 1.5rem; font-weight: 800; margin-top: 4px; }
+    .medal-gold { color: #D4A017; }
+    .medal-silver { color: #8E8E8E; }
+    .medal-bronze { color: #A0522D; }
+    .score-summary {
+      font-size: 1.2rem; color: #555; font-weight: 600;
+      background: linear-gradient(135deg, #FFF5F0, #FFF0F5);
+      padding: 8px 24px; border-radius: 30px;
+      border: 2px solid #FFD6CC; margin: 8px 0 14px;
+    }
+    .score-stars-display { font-size: 2rem; letter-spacing: 4px; margin: 6px 0; }
+    .complete-message { font-size: 1.1rem; color: #666; margin-bottom: 16px; max-width: 350px; }
+    @media (max-width: 600px) {
+      .game-container { padding: 18px 14px 24px; border-radius: 36px; }
+      #welcomeScreen h1 { font-size: 1.8rem; }
+      .welcome-emotions-row { font-size: 1.8rem; letter-spacing: 6px; }
+      .situation-text { font-size: 1.2rem; }
+      .situation-icon { font-size: 2.8rem; }
+      .emotions-grid { gap: 8px; }
+      .emotion-btn { flex: 1 1 85px; min-width: 70px; padding: 8px 4px 10px; }
+      .emotion-emoji { font-size: 2rem; }
+      .emotion-name { font-size: 0.85rem; }
+      .btn { padding: 10px 22px; font-size: 1rem; }
+      .game-header { flex-direction: column; align-items: center; }
+      .feedback-text { font-size: 1rem; }
+      .big-emotion-emoji { font-size: 6rem; }
+      .big-emotion-content { padding: 24px 28px 30px; }
+      .mascot-emoji { font-size: 2.2rem; }
+      .mascot-speech { font-size: 0.9rem; }
+    }
+    @media (max-width: 400px) {
+      .emotion-btn { flex: 1 1 70px; min-width: 58px; padding: 6px 3px 8px; }
+      .emotion-emoji { font-size: 1.6rem; }
+      .emotion-name { font-size: 0.75rem; }
+      .situation-text { font-size: 1rem; }
+      .big-emotion-emoji { font-size: 4.5rem; }
+    }
+  </style>
+</head>
+<body>
+<div class="game-container" role="main" aria-label="Juego de las emociones">
+
+  <div class="screen active" id="welcomeScreen">
+    <div class="welcome-icon">🌈</div>
+    <h1>¡Mis Emociones!</h1>
+    <div class="welcome-mascot-row">
+      <span class="welcome-mascot">🦉</span>
+      <span class="welcome-bubble">¡Hola! Soy Búho, ¿jugamos juntos?</span>
+    </div>
+    <p class="welcome-subtitle">Un juego para descubrir cómo te sientes</p>
+    <div class="welcome-emotions-row">😊 😢 😲 😨 😤</div>
+    <p class="welcome-desc">🎵 Escucha con atención cada situación.<br>🤔 Elige la emoción que sientes.<br>🤸 ¡Luego representa la emoción con tu cuerpo!</p>
+    <button class="btn btn-primary" id="startGameBtn">🚀 ¡Comenzar a jugar!</button>
+  </div>
+
+  <div class="screen" id="gameScreen">
+    <div class="mascot-area" id="mascotArea">
+      <span class="mascot-emoji">🦉</span>
+      <span class="mascot-speech" id="mascotSpeech">¿Qué crees que siente?</span>
+    </div>
+    <div class="game-header">
+      <span class="game-title-small">🥰 Mis Emociones</span>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+        <span class="score-display" id="scoreDisplay">
+          <span class="score-star">⭐</span>
+          <span class="score-number" id="scoreNumber">0</span>
+        </span>
+        <span class="progress-badge" id="progressBadge">1 / 10</span>
+      </div>
+    </div>
+    <div class="situation-area" id="situationArea">
+      <div class="situation-icon" id="situationIcon">🏫</div>
+      <div class="situation-text" id="situationText">¡Escucha con atención! 👂</div>
+    </div>
+    <p class="question-prompt">🔊 ¿Qué emoción sientes?</p>
+    <div class="emotions-grid" id="emotionsGrid">
+      <button class="emotion-btn" data-emotion="alegria" aria-label="Alegría"><span class="emotion-emoji">😊</span><span class="emotion-name">Alegría</span></button>
+      <button class="emotion-btn" data-emotion="tristeza" aria-label="Tristeza"><span class="emotion-emoji">😢</span><span class="emotion-name">Tristeza</span></button>
+      <button class="emotion-btn" data-emotion="sorpresa" aria-label="Sorpresa"><span class="emotion-emoji">😲</span><span class="emotion-name">Sorpresa</span></button>
+      <button class="emotion-btn" data-emotion="miedo" aria-label="Miedo"><span class="emotion-emoji">😨</span><span class="emotion-name">Miedo</span></button>
+      <button class="emotion-btn" data-emotion="enojo" aria-label="Enojo"><span class="emotion-emoji">😤</span><span class="emotion-name">Enojo</span></button>
+    </div>
+    <div class="feedback-area" id="feedbackArea"></div>
+    <div class="nav-buttons">
+      <button class="btn btn-secondary btn-small" id="backBtn">⬅️ Regresar</button>
+      <button class="btn btn-success" id="nextBtn">➡️ Siguiente</button>
+    </div>
+  </div>
+
+  <div class="screen" id="completeScreen">
+    <div class="complete-icon">🎉</div>
+    <h2>¡Juego Completado!</h2>
+    <div class="medal-display" id="medalDisplay">
+      <span class="medal-emoji" id="medalEmoji">🏅</span>
+      <div class="medal-name" id="medalName">¡Medalla de Oro!</div>
+    </div>
+    <div class="score-summary" id="scoreSummary">⭐ 10 de 10 correctas</div>
+    <div class="score-stars-display" id="scoreStarsDisplay">⭐⭐⭐⭐⭐</div>
+    <p class="complete-message" id="completeMessage">¡Eres increíble expresando tus emociones!</p>
+    <div class="nav-buttons">
+      <button class="btn btn-warning" id="replayBtn">🔄 Jugar de nuevo</button>
+      <button class="btn btn-back btn-small" id="backHomeBtn">🏠 Inicio</button>
+    </div>
+  </div>
+</div>
+
+<div class="big-emotion-overlay" id="bigEmotionOverlay">
+  <div class="big-emotion-content">
+    <div class="big-emotion-emoji" id="bigEmoji">😊</div>
+    <div class="big-emotion-name" id="bigEmotionName">Alegría</div>
+    <button class="big-emotion-btn" id="bigEmotionOkBtn">✅ ¡Listo!</button>
+  </div>
+</div>
+
+<script>
+  const SoundFX = {
+    initialized: false, audioCtx: null,
+    init() { if (this.initialized) return; this.audioCtx = new (window.AudioContext || window.webkitAudioContext)(); this.initialized = true; },
+    _tone(f, d, t, v) { this.init(); const o=this.audioCtx.createOscillator(); const g=this.audioCtx.createGain(); o.type=t; o.frequency.setValueAtTime(f,this.audioCtx.currentTime); g.gain.setValueAtTime(v,this.audioCtx.currentTime); g.gain.exponentialRampToValueAtTime(0.001,this.audioCtx.currentTime+d); o.connect(g); g.connect(this.audioCtx.destination); o.start(); o.stop(this.audioCtx.currentTime+d); },
+    playWelcome() { this.init(); this._tone(523.25,0.2,'sine',0.25); setTimeout(()=>this._tone(659.25,0.2,'sine',0.25),150); setTimeout(()=>this._tone(783.99,0.3,'sine',0.3),300); },
+    playClick() { this.init(); this._tone(600,0.06,'square',0.1); },
+    playCorrect() { this.init(); this._tone(587.33,0.15,'sine',0.25); setTimeout(()=>this._tone(783.99,0.25,'sine',0.3),120); },
+    playAccept() { this.init(); this._tone(440,0.15,'triangle',0.2); setTimeout(()=>this._tone(523.25,0.2,'triangle',0.2),100); },
+    playNext() { this.init(); this._tone(330,0.1,'sine',0.15); setTimeout(()=>this._tone(440,0.1,'sine',0.15),80); setTimeout(()=>this._tone(554.37,0.15,'sine',0.2),160); },
+    playComplete() { this.init(); this._tone(523.25,0.15,'sine',0.25); setTimeout(()=>this._tone(659.25,0.15,'sine',0.25),120); setTimeout(()=>this._tone(783.99,0.15,'sine',0.25),240); setTimeout(()=>this._tone(1046.5,0.4,'sine',0.3),360); },
+    playMedal() { this.init(); this._tone(523.25,0.12,'sine',0.2); setTimeout(()=>this._tone(659.25,0.12,'sine',0.25),100); setTimeout(()=>this._tone(783.99,0.12,'sine',0.25),200); setTimeout(()=>this._tone(1046.5,0.3,'sine',0.3),300); setTimeout(()=>this._tone(1318.5,0.4,'sine',0.25),400); }
+  };
+
+  function speakText(text) {
+    if (!window.speechSynthesis) return;
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'es-MX'; u.rate = 0.88; u.pitch = 1.1; u.volume = 1;
+    window.speechSynthesis.speak(u);
+  }
+  function speakSituation(s) { speakText(s.text); }
+  function speakFeedback(c, e, cl) {
+    const n = { alegria:'Alegr\u00EDa', tristeza:'Tristeza', sorpresa:'Sorpresa', miedo:'Miedo', enojo:'Enojo' };
+    if (c) speakText('\u00A1Muy bien! \u00A1' + n[e] + '! \u00A1Ahora haz esa cara con tu cuerpo!');
+    else speakText('\u00A1Interesante! Puede ser ' + cl.map(x=>n[x]).join(' o ') + '. \u00A1Ahora haz esa cara con tu cuerpo!');
+  }
+  function speakGameStart() { speakText('\u00A1Vamos a jugar con las emociones! Elige c\u00F3mo te sientes.'); }
+  function speakGameComplete() { speakText('\u00A1Felicidades! Completaste todas las situaciones. \u00A1Eres incre\u00EDble!'); }
+
+  const situations = [
+    { icon: '\uD83C\uDF6C', text: 'Alguien te regala un dulce', correct: ['alegria'] },
+    { icon: '\uD83C\uDF89', text: 'Es tu cumplea\u00F1os y todos cantan', correct: ['alegria', 'sorpresa'] },
+    { icon: '\uD83E\uDDF8', text: 'Se te rompe tu juguete favorito', correct: ['tristeza'] },
+    { icon: '\uD83C\uDF66', text: 'Tu helado se cae al suelo', correct: ['tristeza', 'enojo'] },
+    { icon: '\uD83C\uDF81', text: 'Abres un regalo y es justo lo que quer\u00EDas', correct: ['sorpresa', 'alegria'] },
+    { icon: '\uD83C\uDF88', text: 'Un payaso aparece de repente en tu fiesta', correct: ['sorpresa'] },
+    { icon: '\uD83C\uDF19', text: 'Ves una sombra extra\u00F1a en la noche', correct: ['miedo'] },
+    { icon: '\uD83D\uDC36', text: 'Un perro grande se acerca y ladra fuerte', correct: ['miedo', 'sorpresa'] },
+    { icon: '\uD83E\uDD4A', text: 'Tu hermano te quita tu juguete favorito', correct: ['enojo'] },
+    { icon: '\u270B', text: 'No te dejan ver tu programa favorito', correct: ['enojo', 'tristeza'] }
+  ];
+
+  const d = id => document.getElementById(id);
+  const welcomeScreen = d('welcomeScreen'), gameScreen = d('gameScreen'), completeScreen = d('completeScreen');
+  const mascotSpeech = d('mascotSpeech'), situationIconEl = d('situationIcon'), situationTextEl = d('situationText');
+  const feedbackAreaEl = d('feedbackArea'), progressBadge = d('progressBadge'), scoreNumber = d('scoreNumber');
+  const startGameBtn = d('startGameBtn'), nextBtn = d('nextBtn'), backBtn = d('backBtn');
+  const replayBtn = d('replayBtn'), backHomeBtn = d('backHomeBtn'), emotionBtns = document.querySelectorAll('.emotion-btn');
+  const bigOverlay = d('bigEmotionOverlay'), bigEmoji = d('bigEmoji'), bigEmotionName = d('bigEmotionName'), bigOkBtn = d('bigEmotionOkBtn');
+  const medalEmoji = d('medalEmoji'), medalName = d('medalName'), scoreSummary = d('scoreSummary'), scoreStarsDisplay = d('scoreStarsDisplay'), completeMessage = d('completeMessage');
+
+  let currentRound = 0, currentSituation = null, answered = false, roundSituations = [], correctCount = 0;
+  const ROUNDS_PER_GAME = 10;
+  const emojiMap = { alegria:'\uD83D\uDE0A', tristeza:'\uD83D\uDE22', sorpresa:'\uD83D\uDE32', miedo:'\uD83D\uDE28', enojo:'\uD83D\uDE24' };
+  const nameMap = { alegria:'Alegr\u00EDa', tristeza:'Tristeza', sorpresa:'Sorpresa', miedo:'Miedo', enojo:'Enojo' };
+
+  function showScreen(id) { document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); d(id).classList.add('active'); }
+
+  function initGame() {
+    const s = [...situations];
+    for (let i=s.length-1;i>0;i--) { const j=Math.floor(Math.random()*(i+1)); [s[i],s[j]]=[s[j],s[i]]; }
+    roundSituations = s.slice(0, ROUNDS_PER_GAME);
+    currentRound = 0; correctCount = 0;
+    scoreNumber.textContent = '0';
+    showScreen('gameScreen');
+    SoundFX.playWelcome();
+    mascotSpeech.textContent = '\u00A1Vamos a jugar! \uD83C\uDF89';
+    setTimeout(speakGameStart, 500);
+    loadSituation(0);
+  }
+
+  function loadSituation(index) {
+    if (index >= roundSituations.length) { setTimeout(showGameComplete, 300); return; }
+    const sit = roundSituations[index];
+    currentSituation = sit; currentRound = index; answered = false;
+    situationIconEl.textContent = sit.icon || '\uD83D\uDCCC';
+    situationTextEl.textContent = sit.text;
+    feedbackAreaEl.innerHTML = ''; feedbackAreaEl.classList.remove('visible');
+    emotionBtns.forEach(b=>{ b.classList.remove('highlight'); b.disabled=false; });
+    progressBadge.textContent = (index+1)+' / '+ROUNDS_PER_GAME;
+    nextBtn.style.display = 'inline-flex';
+    mascotSpeech.textContent = '\u00BFQu\u00E9 crees que siente? \uD83E\uDD14';
+    setTimeout(() => speakSituation(sit), 400);
+  }
+
+  function handleEmotionClick(e) {
+    const btn = e.currentTarget.closest('.emotion-btn');
+    if (!btn || answered) return;
+    const selected = btn.dataset.emotion;
+    const correct = currentSituation.correct;
+    const isCorrect = correct.includes(selected);
+    SoundFX.playClick();
+    emotionBtns.forEach(b=>b.disabled=true);
+    btn.classList.add('highlight');
+    showFeedback(selected, isCorrect);
+    answered = true;
+    if (isCorrect) { correctCount++; scoreNumber.textContent = correctCount; }
+    if (isCorrect) mascotSpeech.textContent = '\u00A1Muy bien! \u00A1' + nameMap[selected] + '! \uD83C\uDF89';
+    else mascotSpeech.textContent = '\u00A1Interesante! Tambi\u00E9n ' + correct.map(e=>nameMap[e]).join(' o ') + ' \uD83D\uDCA1';
+    setTimeout(() => speakFeedback(isCorrect, selected, currentSituation.correct), 300);
+    setTimeout(() => showBigEmotion(selected), 600);
+  }
+
+  function showFeedback(emotion, isCorrect) {
+    let html = '';
+    if (isCorrect) {
+      SoundFX.playCorrect();
+      html = '<div class="feedback-emoji">\u2705 '+emojiMap[emotion]+'</div><div class="feedback-text">\u00A1Muy bien! \u00A1'+nameMap[emotion]+'!</div>';
+    } else {
+      SoundFX.playAccept();
+      const exp = currentSituation.correct.map(e=>emojiMap[e]+' '+nameMap[e]).join(' o ');
+      html = '<div class="feedback-emoji">\uD83D\uDCA1 '+emojiMap[emotion]+'</div><div class="feedback-text">\u00A1Interesante! Puede ser '+exp+'</div><div class="feedback-subtext">\u00A1Todas las emociones son v\u00E1lidas!</div>';
+    }
+    html += '<div class="act-body-message">\uD83E\uDD38 \u00A1Ahora haz esta cara con tu cuerpo!</div>';
+    feedbackAreaEl.innerHTML = html;
+    feedbackAreaEl.classList.add('visible');
+  }
+
+  function showBigEmotion(emotion) {
+    bigEmoji.textContent = emojiMap[emotion] || '\uD83D\uDE0A';
+    bigEmotionName.textContent = nameMap[emotion] || 'Alegr\u00EDa';
+    const c = { alegria:'#D4A017', tristeza:'#2D7BD6', sorpresa:'#9B30B6', miedo:'#666', enojo:'#D32F2F' };
+    bigEmotionName.style.color = c[emotion] || '#4A3728';
+    bigOverlay.classList.add('active');
+  }
+
+  function hideBigEmotion() { bigOverlay.classList.remove('active'); }
+
+  function showGameComplete() {
+    showScreen('completeScreen');
+    SoundFX.playComplete();
+    const total = ROUNDS_PER_GAME, pct = correctCount/total;
+    let medalIcon, medalText, msg, starsCount;
+    if (pct >= 0.9) { medalIcon='\uD83E\uDD47'; medalText='\u00A1Medalla de Oro!'; msg='\u00A1Eres un campe\u00F3n de las emociones! \uD83C\uDF1F'; starsCount=5; SoundFX.playMedal(); }
+    else if (pct >= 0.6) { medalIcon='\uD83E\uDD48'; medalText='\u00A1Medalla de Plata!'; msg='\u00A1Muy bien! \u00A1Casi perfecto! \uD83C\uDF1F'; starsCount=4; }
+    else if (pct >= 0.3) { medalIcon='\uD83E\uDD49'; medalText='\u00A1Medalla de Bronce!'; msg='\u00A1Buen intento! \u00A1Sigue practicando! \uD83D\uDCAA'; starsCount=3; }
+    else { medalIcon='\uD83C\uDFAF'; medalText='\u00A1Sigue intentando!'; msg='\u00A1Cada vez lo har\u00E1s mejor! \u00A1T\u00FA puedes! \uD83D\uDCAA'; starsCount=2; }
+    medalEmoji.textContent = medalIcon;
+    medalName.textContent = medalText;
+    medalName.className = 'medal-name ' + (medalIcon==='\uD83E\uDD47'?'medal-gold':medalIcon==='\uD83E\uDD48'?'medal-silver':medalIcon==='\uD83E\uDD49'?'medal-bronze':'');
+    scoreSummary.textContent = '\u2B50 ' + correctCount + ' de ' + total + ' correctas';
+    scoreStarsDisplay.textContent = '\u2B50'.repeat(starsCount) + '\u2606'.repeat(5-starsCount);
+    completeMessage.textContent = msg;
+    speakGameComplete();
+  }
+
+  function resetToWelcome() { showScreen('welcomeScreen'); }
+
+  startGameBtn.addEventListener('click', initGame);
+  nextBtn.addEventListener('click', ()=>{ SoundFX.playNext(); loadSituation(currentRound+1); });
+  backBtn.addEventListener('click', resetToWelcome);
+  replayBtn.addEventListener('click', initGame);
+  backHomeBtn.addEventListener('click', resetToWelcome);
+  emotionBtns.forEach(b=>b.addEventListener('click', handleEmotionClick));
+  bigOkBtn.addEventListener('click', hideBigEmotion);
+  bigOverlay.addEventListener('click', e => { if (e.target === bigOverlay) hideBigEmotion(); });
+  document.addEventListener('keydown', e => { if ((e.key==='Enter'||e.key==='Escape') && bigOverlay.classList.contains('active')) hideBigEmotion(); });
+</script>
+</body>
+</html>
