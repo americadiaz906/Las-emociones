@@ -126,32 +126,9 @@ Se crearon los siguientes archivos:
 | `planeacion_didactica.md` | Planeación alineada a la Nueva Escuela Mexicana (NEM) - Fase 2 Preescolar |
 | `.gitignore` | Ignorar archivos del sistema y del editor |
 
-### 8. Historial de Git — Commits realizados
 
-> *Registra aquí los commits que fuiste haciendo durante el proceso.*
 
-```bash
-# 📝 Ejemplo (completar con tus commits reales):
-# git log --oneline
-
-# Por ejemplo:
-# abc1234 Agrega bitacora de proceso
-# def5678 Agrega planeacion didactica NEM
-# ghi9012 Agrega instrucciones de uso
-# jkl3456 Crea README del proyecto
-# mno7896 Corrige archivo HTML corrupto
-# pqr1234 Crea juego de emociones para preescolar
-```
-
-| Fecha aprox. | Commit | Descripción |
-|---|---|---|
-| — | — | *(Completar)* |
-| — | — | *(Completar)* |
-| — | — | *(Completar)* |
-| — | — | *(Completar)* |
-| — | — | *(Completar)* |
-
-### 9. Verificación final
+### 8. Verificación final
 
 El archivo `emociones-preescolar.html` fue verificado:
 - ✅ Empieza con `<!DOCTYPE html>`
@@ -227,17 +204,6 @@ mis-emociones-preescolar/
 ├── planeacion_didactica.md     ✅ Creado — Planeación alineada a la NEM
 ├── bitacora_proceso.md         ✅ Este archivo — Evidencia del proceso
 └── .gitignore                  ✅ Creado — Archivos ignorados por Git
-```
-
----
-
-## 💡 Lecciones aprendidas
-
-1. **No usar `single_find_and_replace` en archivos grandes** sin antes leer el contenido completo.
-2. **Al regenerar archivos**, es más seguro eliminar y recrear desde cero que parchar parcialmente.
-3. **PowerShell con `Add-Content`** puede corromper caracteres UTF-8; usar escapes Unicode para emojis y acentos en JavaScript.
-4. **Verificar el archivo** después de cada edición grande leyendo las primeras y últimas líneas.
-5. **Hacer respaldo** antes de modificaciones importantes en el archivo principal.
 
 ---
 
