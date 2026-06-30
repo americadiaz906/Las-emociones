@@ -34,13 +34,13 @@ Crea un juego interactivo digital que incluya el código completo (HTML, CSS y J
 
 ## 🤖 Respuesta 1 — IA
 
-(La IA generó el archivo `emociones-preescolar.html` con los requisitos solicitados y luego preguntó si deseaba agregar funcionalidades adicionales como voz, sonidos, sistema de puntuación y medallas).
+(La IA generó el archivo `emociones-preescolar.html` con los requisitos solicitados 
 
 ---
 
 ## 🟢 Mensaje 2 — Usuario
 
-Si agregale todo eso también.
+Se pregunto que cambios podria hacer al proyecto para que fuera mas interactivo y se propusieron ciertos cambios como agregar sonidos o medallas.
 
 ---
 
@@ -52,7 +52,7 @@ Si agregale todo eso también.
 
 ## 🟢 Mensaje 3 — Usuario
 
-Ya funciona.
+Ya funciona, pero dime en genral que cambios hiciste.
 
 ---
 
@@ -75,7 +75,7 @@ Solo para confirmar, ¿quieres que revise algo específico del juego o que le ag
 
 ## 🟢 Mensaje 4 — Usuario
 
-Es pregunta, ya que me meto al archivo y solo me aparece una pantalla con el fondo naranja.
+Un problema me meto al archivo index a traves de githubpages  y solo me aparece una pantalla con el fondo naranja.
 
 ---
 
